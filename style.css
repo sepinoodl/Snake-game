@@ -1,0 +1,55 @@
+html , body {
+  font-family: 'vazir';
+  font-size: 16px;
+}
+
+body {
+  background: radial-gradient(#e66465, #9198e5);
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+.game-name {
+  font-size: 2rem;
+  color: azure;
+}
+
+.score {
+  font-size: 5rem;
+  color: azure;
+}
+
+#game-canvas {
+  margin-top: 5rem;
+  /* box-shadow: 0px 0px 35px 15px rgba(53, 200, 112, 1); */
+}
+
+.start {
+  font-size: 2rem;
+  color: white;
+  position: relative;
+  z-index: 10001;
+  background-color: rgb(239, 60, 60);
+  border-radius: 100px;
+  padding: 1rem 2rem;
+  user-select: none;
+}
+
+.start:hover {
+  cursor: pointer;
+}
+
+.game-over {
+  font-size: 2rem;
+  font-weight: bold;
+  color: red;
+  position: relative;
+  top: -500px;
+  right: -10px;
+  display: none;
+}
