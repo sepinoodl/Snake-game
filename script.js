@@ -7,14 +7,15 @@ const scoreSign = document.querySelector('.score')
 ctx.lineWidth = 4;
 rectSpaceRL = 10;
 rectSpaceTB = 10;
-
+speed = 70;
+startOffsetHeight = 82;
 
 ctx.fillStyle = '#54e9e4'
 ctx.fillRect(rectSpaceRL , rectSpaceTB , (gameCanvas.width - 2 * (rectSpaceRL)) , (gameCanvas.height - 2 * (rectSpaceTB)) )
 ctx.strokeRect(0 , 0 , gameCanvas.width , gameCanvas.height)
 
-start.style.top = `-${gameCanvas.height/2 + start.offsetHeight/2}px`
-gameOver.style.top = `-${gameCanvas.height/3 + 1.75*(gameCanvas.height/3)}px`
+start.style.top = `-${gameCanvas.offsetHeight/2 + startOffsetHeight/2}px`
+gameOver.style.top = `-${gameCanvas.offsetHeight/3 + 1.75*(gameCanvas.offsetHeight/3)}px`
 
 start.addEventListener('click' , startFunc)
 
@@ -31,6 +32,9 @@ function startFunc(event) {
   let randomNumber = (max , min) => Math.round((Math.random() * (max - min) + min ) / 10) * 10
   gameOver.style.display = 'none'
   scoreSign.innerHTML = score
+
+  gameCanvas.setAttribute('tabindex' , '0')
+  gameCanvas.focus()
 
 
 
@@ -67,12 +71,14 @@ function startFunc(event) {
     }
 
     let changingKey = false;
-    window.addEventListener('keydown' , function(event) {
+    gameCanvas.addEventListener('keydown' , function(event) {
       let leftKey = 'ArrowLeft'
       let rightKey = 'ArrowRight'
       let topKey = 'ArrowUp'
       let bottomKey = 'ArrowDown'
       let keyPressed = event.code
+
+      event.preventDefault()
       
       if(changingKey) return
       changingKey = true;
@@ -97,7 +103,53 @@ function startFunc(event) {
         movementX = 0
         movementY = +10
       }
-})
+    })
+
+    let startX , startY , direction = null;
+    gameCanvas.addEventListener('touchstart' , function(event){
+      startX = event.touches[0].clientX
+      startY = event.touches[0].clientY
+      direction = null;
+      event.preventDefault()
+    })
+    gameCanvas.addEventListener('touchmove' , function(event){
+      if(direction) return;
+
+      event.preventDefault()
+      
+      
+      let min = 10
+      let dx = event.touches[0].clientX - startX
+      let dy = event.touches[0].clientY - startY
+      
+      if( Math.abs(dx) > min ){
+        direction = dx > 0 ? 'right' : 'left'
+      } else if( Math.abs(dy) > min ){
+        direction = dy > 0 ? 'down' : 'up'
+      }
+
+      if(direction == 'right' && movementX !== -10){
+        movementX = +10
+        movementY = 0
+      }
+      if(direction == 'left' && movementX !== +10){
+        movementX = -10
+        movementY = 0
+      }
+      if(direction == 'down' && movementY !== -10){
+        movementY = +10
+        movementX = 0
+      }
+      if(direction == 'up' && movementY !== +10){
+        movementY = -10
+        movementX = 0
+      }
+    })
+    
+    gameCanvas.addEventListener('touchend' , function(event){
+      direction = null;
+    })
+
 
     let advanceSnake = () => {
       let head = { x: snake[0].x + movementX , y: snake[0].y + movementY }
@@ -111,11 +163,34 @@ function startFunc(event) {
       }
       snake.unshift(head)
       console.log(snake)
+      
+      if(score > 50){
+        speed = 60
+      } if(score > 100){
+        speed = 50
+      }
+      if(score > 250){
+        speed = 40
+      }
+      if(score > 500){
+        speed = 30
+      }
+      if(score > 1000){
+        speed = 20
+      }
+      if(score > 2000){
+        speed = 10
+      }
     }
     
     function creatFood(){
-      foodX = randomNumber(0 , gameCanvas.width - 10)
-      foodY = randomNumber(0 , gameCanvas.height - 10)
+      let foodPlaceInSnake = false
+
+      while(!foodPlaceInSnake) {
+        foodX = randomNumber(0 , gameCanvas.width - 10)
+        foodY = randomNumber(0 , gameCanvas.height - 10)
+        foodPlaceInSnake = !snake.some(snakePart => snakePart.x == foodX && snakePart.y == foodY)
+      }
       drawFood()
     }
     creatFood()
@@ -138,16 +213,6 @@ function startFunc(event) {
       drawFood()
     }
 
-    snake.forEach(snakePart => {
-      if(snakePart.x == foodX && snakePart.y == foodY){
-        console.log('snake and food are in one place')
-      drawFood()
-      } else {
-        console.log('snake and food are in the diffrent place')
-      }
-
-    })
-
     let drawSnake = () => snake.forEach(drawSnakePart)
     let drawSnakePart = snakePart => {
       ctx.strokeStyle = 'blaack'
@@ -159,6 +224,7 @@ function startFunc(event) {
     function restart(){
       ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height)
       start.style.display = 'block'
+      speed = 70
       ctx.fillStyle = '#54e9e4'
       ctx.fillRect(rectSpaceRL , rectSpaceTB , (gameCanvas.width - 2 * (rectSpaceRL)) , (gameCanvas.height - 2 * (rectSpaceTB)) )
       ctx.strokeRect(0 , 0 , gameCanvas.width , gameCanvas.height)
@@ -194,7 +260,7 @@ function startFunc(event) {
         drawFood()
 
         main()
-      }, 70);
+      }, speed);
     }
 
     main()
