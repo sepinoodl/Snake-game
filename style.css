@@ -56,8 +56,8 @@ body {
 
 @media (max-width : 600px) {
   #game-canvas {
-    width: 400px !important;
-    height: 400px !important;
+    width: 250px !important;
+    height: 250px !important;
   }
 }
 
