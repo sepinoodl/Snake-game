@@ -27,8 +27,8 @@ body {
 
 #game-canvas {
   margin-top: 5rem;
-  width: 80vw;
-  height: 80vw;
+  width: 90vw;
+  height: 90vw;
   max-width: 700px;
   max-height: 700px;
 }
