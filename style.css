@@ -54,7 +54,7 @@ body {
   display: none;
 }
 
-@media (max-width : 600px) {
+@media (min-width : 300px) {
   #game-canvas {
     width: 250px !important;
     height: 250px !important;
