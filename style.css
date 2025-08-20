@@ -27,6 +27,10 @@ body {
 
 #game-canvas {
   margin-top: 5rem;
+  width: 80vw;
+  height: 80vw;
+  max-width: 700px;
+  max-height: 700px;
 }
 
 .start {
@@ -54,7 +58,7 @@ body {
   display: none;
 }
 
-@media (min-width : 300px) {
+/* @media (min-width : 300px) {
   #game-canvas {
     width: 250px !important;
     height: 250px !important;
@@ -73,4 +77,4 @@ body {
     width: 700px !important;
     height: 700px !important;
   }
-}
+} */
