@@ -9,13 +9,16 @@ rectSpaceRL = 10;
 rectSpaceTB = 10;
 speed = 70;
 startOffsetHeight = 82;
+const vw = window.innerWidth;
+gameCanvas.width = gameCanvas.clientWidth;
+gameCanvas.height = gameCanvas.clientHeight;
 
 ctx.fillStyle = '#54e9e4'
 ctx.fillRect(rectSpaceRL , rectSpaceTB , (gameCanvas.width - 2 * (rectSpaceRL)) , (gameCanvas.height - 2 * (rectSpaceTB)) )
 ctx.strokeRect(0 , 0 , gameCanvas.width , gameCanvas.height)
 
 start.style.top = `-${gameCanvas.offsetHeight/2 + startOffsetHeight/2}px`
-gameOver.style.top = `-${gameCanvas.offsetHeight/3 + 1.75*(gameCanvas.offsetHeight/3)}px`
+console.log(gameOver.clientHeight)
 
 start.addEventListener('click' , startFunc)
 
@@ -164,22 +167,35 @@ function startFunc(event) {
       snake.unshift(head)
       console.log(snake)
       
-      if(score > 50){
-        speed = 60
-      } if(score > 100){
-        speed = 50
-      }
-      if(score > 250){
-        speed = 40
-      }
-      if(score > 500){
-        speed = 30
-      }
-      if(score > 1000){
-        speed = 20
-      }
-      if(score > 2000){
-        speed = 10
+      if(vw > 768){
+        if(score > 50){
+          speed = 60
+        } if(score > 100){
+          speed = 50
+        } if(score > 250){
+          speed = 40
+        } if(score > 500){
+          speed = 30
+        } if(score > 1000){
+          speed = 20
+        } if(score > 2000){
+          speed = 10
+        }
+      } else if(vw < 768) {
+        speed = 80
+        if(score > 100){
+          speed = 70
+        } if(score > 150){
+          speed = 60
+        } if(score > 200){
+          speed = 50
+        } if(score > 400){
+          speed = 40
+        } if(score > 500){
+          speed = 30
+        } if(score > 1000){
+          speed = 20
+        }
       }
     }
     
@@ -228,7 +244,15 @@ function startFunc(event) {
       ctx.fillStyle = '#54e9e4'
       ctx.fillRect(rectSpaceRL , rectSpaceTB , (gameCanvas.width - 2 * (rectSpaceRL)) , (gameCanvas.height - 2 * (rectSpaceTB)) )
       ctx.strokeRect(0 , 0 , gameCanvas.width , gameCanvas.height)
-      gameOver.style.display = 'block'
+      gameOver.style.display = 'block'  
+      if(vw > 768) {
+        gameOver.style.top = `-${gameCanvas.offsetHeight - .2 * gameCanvas.offsetHeight}px`
+      } else if(vw < 768) {
+          gameOver.style.fontSize = `1.5rem`
+          gameOver.style.right = '-5px'
+          gameOver.style.top = `-${gameCanvas.offsetHeight + gameOver.offsetHeight}px`
+      }
+
     }
 
 
