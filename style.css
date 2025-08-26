@@ -81,3 +81,9 @@ body {
   display: flex;
   justify-content: center;
 }
+
+@media (max-width : 768px) {
+  .top-score {
+    display: none;
+  }
+}
