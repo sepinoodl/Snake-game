@@ -17,6 +17,7 @@ const vw = window.innerWidth;
 gameCanvas.width = gameCanvas.clientWidth;
 gameCanvas.height = gameCanvas.clientHeight;
 let highScore = localStorage.getItem("snakeHighScore") ? parseInt(localStorage.getItem("snakeHighScore")) : 0;
+topScore.innerHTML = highScore;
 
 ctx.fillStyle = '#54e9e4'
 ctx.fillRect(rectSpaceRL, rectSpaceTB, (gameCanvas.width - 2 * (rectSpaceRL)), (gameCanvas.height - 2 * (rectSpaceTB)))
@@ -284,8 +285,8 @@ function startFunc(event) {
     function topScoreRecord(){
       if (score > highScore) {
         highScore = score
-        localStorage.setItem('snakeHighScore' , highScore)
         topScore.innerHTML = highScore
+        localStorage.setItem('snakeHighScore' , highScore)
       } else {
         console.log('bozorg nis')
       }
