@@ -34,14 +34,15 @@ muteAndUnmute.addEventListener('click' , function(){
   }else if(muteAndUnmute.classList.contains('mute')) {
     muteAndUnmute.textContent = '🔇'
   }
-})
-if(muteAndUnmute.classList.contains('unmute')){
+
+  if(muteAndUnmute.classList.contains('unmute')){
       gameAudio.pause()
       console.log('nist')
     } else if(muteAndUnmute.classList.contains('mute')){
       gameAudio.play()
       console.log('hast')
     }
+})
 
 start.addEventListener('click', startFunc)
 
@@ -63,7 +64,11 @@ function startFunc(event) {
   gameCanvas.focus()
 
   gameAudio.currentTime = 0;
-  gameAudio.play()
+  if(muteAndUnmute.classList.contains('mute')) {
+    gameAudio.play()
+  } else if(muteAndUnmute.classList.contains('unmute')) {
+    gameAudio.pause()
+  }
 
 
   if (ctx.fillStyle == 'pink') {
