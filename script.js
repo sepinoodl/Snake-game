@@ -263,6 +263,7 @@ function startFunc(event) {
     function topScoreRecord(){
       if (score > highScore) {
         highScore = score
+        localStorage.setItem('snakeHighScore' , highScore)
         topScore.innerHTML = highScore
       } else {
         console.log('bozorg nis')
