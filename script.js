@@ -34,15 +34,14 @@ muteAndUnmute.addEventListener('click' , function(){
   }else if(muteAndUnmute.classList.contains('mute')) {
     muteAndUnmute.textContent = '🔇'
   }
-
-  if(muteAndUnmute.classList.contains('unmute')){
+})
+if(muteAndUnmute.classList.contains('unmute')){
       gameAudio.pause()
       console.log('nist')
     } else if(muteAndUnmute.classList.contains('mute')){
       gameAudio.play()
       console.log('hast')
     }
-})
 
 start.addEventListener('click', startFunc)
 
