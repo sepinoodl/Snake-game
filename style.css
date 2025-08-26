@@ -51,12 +51,12 @@ body {
   display: flex;
   justify-items: space-between;
   align-items: center;
-  gap: 20rem;
 }
 
 .current-score {
   display: flex;
   flex-direction: column;
+  margin-left: 20rem;
 }
 
 .top-score {
@@ -82,8 +82,77 @@ body {
   justify-content: center;
 }
 
+@media (min-width : 768px) {
+  .button-box {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 5%;
+    margin-left: 5%;
+    transform: scale(4);
+    transform-origin: top left;
+  }
+}
+
+@media (min-width : 1025px) {
+  .button-box {
+    margin-top: 4%;
+  }
+}
+
+@media (min-width : 1441px) {
+  .button-box {
+    margin-top: 3%;
+  }
+}
+
 @media (max-width : 768px) {
   .top-score {
     display: none;
   }
+
+  .current-score {
+    margin: 0;
+  }
+
+  .button-box {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 6%;
+    margin-left: 5%;
+    transform: scale(4);
+    transform-origin: top left;
+  }
+
+}
+
+@media (max-width : 425px) {
+  .button-box {
+    margin-top: 12%;
+    margin-left: 5%;
+    transform: scale(2.5);
+  }
+}
+
+@media (max-width : 375px) {
+  .button-box {
+    margin-top: 14%;
+  }
+}
+
+@media (max-width : 320px) {
+  .button-box {
+    margin-top: 16%;
+  }
+}
+
+.button {
+  padding: .1rem .1rem;
+  border-radius: 1rem;
+  user-select: none;
+}
+
+.button:hover {
+  cursor: pointer;
 }

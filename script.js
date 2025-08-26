@@ -6,6 +6,7 @@ const scoreSign = document.querySelector('.score')
 const topScore = document.querySelector('.top-score-number')
 const loseAudio = document.getElementById('lose-audio')
 const gameAudio = document.getElementById('game-audio')
+const muteAndUnmute = document.querySelector('.button')
 
 ctx.lineWidth = 4;
 rectSpaceRL = 10;
@@ -23,6 +24,17 @@ ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
 
 start.style.top = `-${gameCanvas.offsetHeight / 2 + startOffsetHeight / 2}px`
 console.log(gameOver.clientHeight)
+
+muteAndUnmute.addEventListener('click' , function(){
+  muteAndUnmute.classList.toggle('unmute')
+  muteAndUnmute.classList.toggle('mute')
+  if(muteAndUnmute.classList.contains('unmute')) {
+    muteAndUnmute.textContent = '🔊'
+  }else if(muteAndUnmute.classList.contains('mute')) {
+    muteAndUnmute.textContent = '🔇'
+  }
+  console.log('hello')
+})
 
 start.addEventListener('click', startFunc)
 
@@ -42,8 +54,15 @@ function startFunc(event) {
 
   gameCanvas.setAttribute('tabindex', '0')
   gameCanvas.focus()
-  // gameaAudio.currentTime = 0;
+
+
+  gameAudio.currentTime = 0;
   gameAudio.play()
+  if(muteAndUnmute.classList.contains('unmute')){
+    gameAudio.pause()
+  } else if(muteAndUnmute.classList.contains('mute')){
+    gameAudio.play()
+  }
 
   if (ctx.fillStyle == 'pink') {
     return
