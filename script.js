@@ -8,6 +8,7 @@ const loseAudio = document.getElementById('lose-audio')
 const gameAudio = document.getElementById('game-audio')
 const muteAndUnmute = document.querySelector('.button')
 
+let isGameStarted = false;
 fixNumber = 10;
 ctx.lineWidth = 4;
 rectSpaceRL = 10;
@@ -36,21 +37,20 @@ muteAndUnmute.addEventListener('click' , function(){
     muteAndUnmute.textContent = '🔇'
   }
 
-  if(startFunc()){
-    if(muteAndUnmute.classList.contains('unmute')){
-      gameAudio.pause()
+  if(muteAndUnmute.classList.contains('unmute')){
+      if(isGameStarted == true) gameAudio.pause()
       console.log('nist')
     } else if(muteAndUnmute.classList.contains('mute')){
-      gameAudio.play()
+      if(isGameStarted == true) gameAudio.play()
       console.log('hast')
     }
-  }
 })
 
 start.addEventListener('click', startFunc)
 
 function startFunc(event) {
 
+  isGameStarted = true;
   ctx.lineWidth = 1;
   let rect = gameCanvas.getBoundingClientRect()
   let sides = rect.bottom - rect.top
@@ -67,12 +67,6 @@ function startFunc(event) {
   gameCanvas.focus()
 
   gameAudio.currentTime = 0;
-  if(muteAndUnmute.classList.contains('mute')) {
-    gameAudio.play()
-  } else if(muteAndUnmute.classList.contains('unmute')) {
-    gameAudio.pause()
-  }
-
 
   if (ctx.fillStyle == 'pink') {
     return
@@ -339,5 +333,4 @@ function startFunc(event) {
 
 
   }
-  return true
 }
