@@ -269,6 +269,7 @@ function startFunc(event) {
       ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height)
       start.style.display = 'block'
       speed = 70
+      isGameStarted = true;
       ctx.fillStyle = '#54e9e4'
       ctx.fillRect(rectSpaceRL, rectSpaceTB, (gameCanvas.width - 2 * (rectSpaceRL)), (gameCanvas.height - 2 * (rectSpaceTB)))
       ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
@@ -310,6 +311,7 @@ function startFunc(event) {
 
       setTimeout(() => {
         if(lose()) {
+          isGameStarted = false;
           gameAudio.pause()
           loseAudio.play()
           setTimeout(() => {
