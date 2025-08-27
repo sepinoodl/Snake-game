@@ -8,14 +8,15 @@ const loseAudio = document.getElementById('lose-audio')
 const gameAudio = document.getElementById('game-audio')
 const muteAndUnmute = document.querySelector('.button')
 
+fixNumber = 10;
 ctx.lineWidth = 4;
 rectSpaceRL = 10;
 rectSpaceTB = 10;
 speed = 70;
 startOffsetHeight = 82;
 const vw = window.innerWidth;
-gameCanvas.width = gameCanvas.clientWidth;
-gameCanvas.height = gameCanvas.clientHeight;
+gameCanvas.width = Math.floor(gameCanvas.clientWidth/fixNumber) * fixNumber;
+gameCanvas.height = Math.floor(gameCanvas.clientHeight/fixNumber) * fixNumber;
 let highScore = localStorage.getItem("snakeHighScore") ? parseInt(localStorage.getItem("snakeHighScore")) : 0;
 topScore.innerHTML = highScore;
 
@@ -35,13 +36,15 @@ muteAndUnmute.addEventListener('click' , function(){
     muteAndUnmute.textContent = '🔇'
   }
 
-  if(muteAndUnmute.classList.contains('unmute')){
+  if(startFunc()){
+    if(muteAndUnmute.classList.contains('unmute')){
       gameAudio.pause()
       console.log('nist')
     } else if(muteAndUnmute.classList.contains('mute')){
       gameAudio.play()
       console.log('hast')
     }
+  }
 })
 
 start.addEventListener('click', startFunc)
@@ -53,7 +56,7 @@ function startFunc(event) {
   let sides = rect.bottom - rect.top
   let foodX;
   let foodY;
-  let movementX = 10;
+  let movementX = fixNumber;
   let movementY = 0;
   let score = 0;
   let randomNumber = (max, min) => Math.round((Math.random() * (max - min) + min) / 10) * 10
@@ -88,11 +91,11 @@ function startFunc(event) {
   function delay() {
 
     let snake = [
-      { x: 240, y: 250 },
-      { x: 230, y: 250 },
-      { x: 220, y: 250 },
-      { x: 210, y: 250 },
-      { x: 200, y: 250 }
+      { x: gameCanvas.width/2 , y: gameCanvas.height/2 },
+      { x: gameCanvas.width/2 - fixNumber, y: gameCanvas.height/2 },
+      { x: gameCanvas.width/2 - (2*fixNumber), y: gameCanvas.height/2 },
+      { x: gameCanvas.width/2 - (3*fixNumber), y: gameCanvas.height/2 },
+      { x: gameCanvas.width/2 - (4*fixNumber), y: gameCanvas.height/2 }
     ]
 
 
