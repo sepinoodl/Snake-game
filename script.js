@@ -38,7 +38,7 @@ muteAndUnmute.addEventListener('click' , function(){
   }
 
   if(muteAndUnmute.classList.contains('unmute')){
-      if(isGameStarted == true) gameAudio.pause()
+      if(isGameStarted == false) gameAudio.pause()
     } else if(muteAndUnmute.classList.contains('mute')){
       if(isGameStarted == true) gameAudio.play()
     }
