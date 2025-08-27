@@ -339,4 +339,5 @@ function startFunc(event) {
 
 
   }
+  return true
 }
