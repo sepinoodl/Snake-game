@@ -8,7 +8,7 @@ const loseAudio = document.getElementById("lose-audio");
 const gameAudio = document.getElementById("game-audio");
 const muteAndUnmute = document.querySelector(".button");
 
-let isMuted = true;
+let isMuted = false;
 let isGameStarted = false;
 let fixNumber = 10;
 let rectSpaceRL = 10;
@@ -59,15 +59,50 @@ muteAndUnmute.addEventListener("click", function () {
 
 start.addEventListener("click", startFunc);
 
+// اصلاح تابع randomNumber برای جلوگیری از مختصات اشتباه
+const randomNumber = (min, max) =>
+  Math.round((Math.random() * (max - min) + min) / 10) * 10;
+
+// تعریف drawFood قبل از استفاده
+const drawFood = () => {
+  ctx.lineWidth = 1;
+  ctx.fillStyle = "red"; // برای تست می‌تونی بذاری "blue"
+  ctx.strokeStyle = "black";
+  ctx.fillRect(foodX, foodY, 10, 10);
+  ctx.strokeRect(foodX, foodY, 10, 10);
+};
+
+// snake و foodX/Y باید global باشن تا همه‌جا قابل دسترسی باشن
+let snake = [];
+let foodX = 0;
+let foodY = 0;
+
+// تعریف createFood قبل از استفاده
+const createFood = () => {
+  let valid = false;
+  let attempts = 0;
+
+  while (!valid && attempts < 100) {
+    foodX = randomNumber(0, gameCanvas.width - 10);
+    foodY = randomNumber(0, gameCanvas.height - 10);
+    valid = !snake.some((part) => part.x === foodX && part.y === foodY);
+    attempts++;
+  }
+
+  if (!valid) {
+    foodX = 0;
+    foodY = 0;
+  }
+
+  drawFood();
+};
 function startFunc() {
   isGameStarted = true;
   ctx.lineWidth = 1;
-  let movementX = fixNumber;
-  let movementY = 0;
-  let score = 0;
-  let foodX, foodY;
-  const randomNumber = (max, min) =>
-    Math.round((Math.random() * (max - min) + min) / 10) * 10;
+movementX = fixNumber;
+movementY = 0;
+score = 0;
+
 
   gameOver.style.display = "none";
   scoreSign.innerHTML = score;
@@ -83,22 +118,145 @@ function startFunc() {
   setTimeout(() => {
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
     start.style.display = "none";
-    delay();
-  }, 1000);
 
-  function delay() {
-    let snake = Array.from({ length: 5 }, (_, i) => ({
+    snake = Array.from({ length: 5 }, (_, i) => ({
       x: gameCanvas.width / 2 - i * fixNumber,
       y: gameCanvas.height / 2,
     }));
 
+    createFood();
+    main();
+
     const clearSnake = () => {
-      ctx.fillStyle = "pink";
-      ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+      ctx.fillStyle = "#54e9e4";
+      ctx.fillRect(
+        rectSpaceRL,
+        rectSpaceTB,
+        gameCanvas.width - 2 * rectSpaceRL,
+        gameCanvas.height - 2 * rectSpaceTB
+      );
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 4;
       ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
     };
 
-    let changingKey = false;
+    const drawSnake = () =>
+      snake.forEach((part) => {
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "lightgreen";
+        ctx.strokeRect(part.x, part.y, 10, 10);
+        ctx.fillRect(part.x, part.y, 10, 10);
+      });
+
+    const advanceSnake = () => {
+      const head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
+      if (head.x === foodX && head.y === foodY) {
+        score += 10;
+        scoreSign.textContent = score;
+        createFood();
+        topScoreRecord();
+      } else {
+        snake.pop();
+      }
+      snake.unshift(head);
+
+      if (vw > 768) {
+        speed = 80;
+        if (score > 100) speed = 70;
+        if (score > 200) speed = 60;
+        if (score > 300) speed = 50;
+        if (score > 500) speed = 40;
+        if (score > 800) speed = 30;
+        if (score > 1200) speed = 25;
+      } else {
+        speed = 100;
+        if (score > 100) speed = 90;
+        if (score > 200) speed = 80;
+        if (score > 300) speed = 70;
+        if (score > 500) speed = 60;
+        if (score > 800) speed = 50;
+        if (score > 1200) speed = 40;
+      }
+    };
+
+    const topScoreRecord = () => {
+      if (score > highScore) {
+        highScore = score;
+        topScore.textContent = highScore;
+        localStorage.setItem("snakeHighScore", highScore);
+      }
+    };
+    const lose = () => {
+      if (
+        snake[0].x >= gameCanvas.width ||
+        snake[0].y >= gameCanvas.height ||
+        snake[0].x < 0 ||
+        snake[0].y < 0
+      )
+        return true;
+
+      for (let i = 1; i < snake.length; i++) {
+        if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    const restart = () => {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      start.style.display = "block";
+      speed = 70;
+      isGameStarted = true;
+      ctx.fillStyle = "#54e9e4";
+      ctx.fillRect(
+        rectSpaceRL,
+        rectSpaceTB,
+        gameCanvas.width - 2 * rectSpaceRL,
+        gameCanvas.height - 2 * rectSpaceTB
+      );
+      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+      gameOver.style.display = "block";
+
+      if (vw > 768) {
+        gameOver.style.top = `-${
+          gameCanvas.offsetHeight - 0.2 * gameCanvas.offsetHeight
+        }px`;
+      } else {
+        gameOver.style.fontSize = `1.5rem`;
+        gameOver.style.right = "-5px";
+        gameOver.style.top = `-${
+          gameCanvas.offsetHeight + gameOver.offsetHeight
+        }px`;
+      }
+    };
+
+    function main() {
+      setTimeout(() => {
+        if (lose()) {
+          isGameStarted = false;
+          gameAudio.pause();
+          if (!isMuted) {
+            loseAudio.currentTime = 0;
+            loseAudio.play();
+          }
+          setTimeout(() => {
+            restart();
+            start.addEventListener("click", startFunc);
+          }, 1000);
+          return;
+        }
+
+        changingKey = false;
+        clearSnake();
+        advanceSnake();
+        drawSnake();
+        drawFood();
+        main();
+      }, speed);
+    }
+
+    // کنترل‌های صفحه‌کلید
     gameCanvas.addEventListener("keydown", function (event) {
       const key = event.code;
       event.preventDefault();
@@ -123,6 +281,7 @@ function startFunc() {
       }
     });
 
+    // کنترل‌های لمسی برای موبایل
     let startX,
       startY,
       direction = null;
@@ -165,140 +324,6 @@ function startFunc() {
       direction = null;
     });
 
-    const advanceSnake = () => {
-      const head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
-      if (head.x === foodX && head.y === foodY) {
-        score += 10;
-        scoreSign.textContent = score;
-        createFood();
-        topScoreRecord();
-      } else {
-        snake.pop();
-      }
-      snake.unshift(head);
-
-      if (vw > 768) {
-        if (score > 50) speed = 60;
-        if (score > 100) speed = 50;
-        if (score > 250) speed = 40;
-        if (score > 500) speed = 30;
-        if (score > 1000) speed = 20;
-        if (score > 2000) speed = 10;
-      } else {
-        speed = 80;
-        if (score > 100) speed = 70;
-        if (score > 150) speed = 60;
-        if (score > 200) speed = 50;
-        if (score > 400) speed = 40;
-        if (score > 500) speed = 30;
-        if (score > 1000) speed = 20;
-      }
-    };
-
-    const createFood = () => {
-      let valid = false;
-      while (!valid) {
-        foodX = randomNumber(0, gameCanvas.width - 10);
-        foodY = randomNumber(0, gameCanvas.height - 10);
-        valid = !snake.some((part) => part.x === foodX && part.y === foodY);
-      }
-      drawFood();
-    };
-
-    const drawFood = () => {
-      ctx.lineWidth = 1;
-      ctx.fillStyle = "red";
-      ctx.strokeStyle = "black";
-      ctx.fillRect(foodX, foodY, 10, 10);
-      ctx.strokeRect(foodX, foodY, 10, 10);
-    };
-
-    const drawSnake = () =>
-      snake.forEach((part) => {
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "lightgreen";
-        ctx.strokeRect(part.x, part.y, 10, 10);
-        ctx.fillRect(part.x, part.y, 10, 10);
-      });
-
-    const restart = () => {
-      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-      start.style.display = "block";
-      speed = 70;
-      isGameStarted = true;
-      ctx.fillStyle = "#54e9e4";
-      ctx.fillRect(
-        rectSpaceRL,
-        rectSpaceTB,
-        gameCanvas.width - 2 * rectSpaceRL,
-        gameCanvas.height - 2 * rectSpaceTB
-      );
-      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
-      gameOver.style.display = "block";
-
-      if (vw > 768) {
-        gameOver.style.top = `-${
-          gameCanvas.offsetHeight - 0.2 * gameCanvas.offsetHeight
-        }px`;
-      } else {
-        gameOver.style.fontSize = `1.5rem`;
-        gameOver.style.right = "-5px";
-        gameOver.style.top = `-${
-          gameCanvas.offsetHeight + gameOver.offsetHeight
-        }px`;
-      }
-    };
-
-    const topScoreRecord = () => {
-      if (score > highScore) {
-        highScore = score;
-        topScore.textContent = highScore;
-        localStorage.setItem("snakeHighScore", highScore);
-      }
-    };
-
-    const lose = () => {
-      if (
-        snake[0].x >= gameCanvas.width ||
-        snake[0].y >= gameCanvas.height ||
-        snake[0].x < 0 ||
-        snake[0].y < 0
-      )
-        return true;
-
-      for (let i = 1; i < snake.length; i++) {
-        if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
-          return true;
-        }
-      }
-      return false;
-    };
-
-    function main() {
-      setTimeout(() => {
-        if (lose()) {
-          isGameStarted = false;
-          gameAudio.pause();
-          if (!isMuted) {
-            loseAudio.currentTime = 0;
-            loseAudio.play();
-          }
-          setTimeout(() => {
-            restart();
-            start.addEventListener("click", startFunc);
-          }, 1000);
-          return;
-        }
-
-        changingKey = false;
-        clearSnake();
-        advanceSnake();
-        drawSnake();
-        drawFood();
-        main();
-      }, speed);
-    }
-
     main();
-  }
+  }, 1000);
 }
