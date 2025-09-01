@@ -1,341 +1,304 @@
-const gameCanvas = document.getElementById('game-canvas')
-const ctx = gameCanvas.getContext('2d')
-const start = document.querySelector('.start')
-const gameOver = document.querySelector('.game-over')
-const scoreSign = document.querySelector('.score')
-const topScore = document.querySelector('.top-score-number')
-const loseAudio = document.getElementById('lose-audio')
-const gameAudio = document.getElementById('game-audio')
-const muteAndUnmute = document.querySelector('.button')
+const gameCanvas = document.getElementById("game-canvas");
+const ctx = gameCanvas.getContext("2d");
+const start = document.querySelector(".start");
+const gameOver = document.querySelector(".game-over");
+const scoreSign = document.querySelector(".score");
+const topScore = document.querySelector(".top-score-number");
+const loseAudio = document.getElementById("lose-audio");
+const gameAudio = document.getElementById("game-audio");
+const muteAndUnmute = document.querySelector(".button");
 
+let isMuted = true;
 let isGameStarted = false;
-fixNumber = 10;
-ctx.lineWidth = 4;
-rectSpaceRL = 10;
-rectSpaceTB = 10;
-speed = 70;
-startOffsetHeight = 82;
+let fixNumber = 10;
+let rectSpaceRL = 10;
+let rectSpaceTB = 10;
+let speed = 70;
+let startOffsetHeight = 82;
 const vw = window.innerWidth;
-gameCanvas.width = Math.floor(gameCanvas.clientWidth/fixNumber) * fixNumber;
-gameCanvas.height = Math.floor(gameCanvas.clientHeight/fixNumber) * fixNumber;
-let highScore = localStorage.getItem("snakeHighScore") ? parseInt(localStorage.getItem("snakeHighScore")) : 0;
+
+gameCanvas.width = Math.floor(gameCanvas.clientWidth / fixNumber) * fixNumber;
+gameCanvas.height = Math.floor(gameCanvas.clientHeight / fixNumber) * fixNumber;
+
+let highScore = localStorage.getItem("snakeHighScore")
+  ? parseInt(localStorage.getItem("snakeHighScore"))
+  : 0;
 topScore.innerHTML = highScore;
 
-ctx.fillStyle = '#54e9e4'
-ctx.fillRect(rectSpaceRL, rectSpaceTB, (gameCanvas.width - 2 * (rectSpaceRL)), (gameCanvas.height - 2 * (rectSpaceTB)))
-ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
+ctx.lineWidth = 4;
+ctx.fillStyle = "#54e9e4";
+ctx.fillRect(
+  rectSpaceRL,
+  rectSpaceTB,
+  gameCanvas.width - 2 * rectSpaceRL,
+  gameCanvas.height - 2 * rectSpaceTB
+);
+ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-start.style.top = `-${gameCanvas.offsetHeight / 2 + startOffsetHeight / 2}px`
-console.log(gameOver.clientHeight)
+start.style.top = `-${gameCanvas.offsetHeight / 2 + startOffsetHeight / 2}px`;
 
-muteAndUnmute.addEventListener('click' , function(){
-  muteAndUnmute.classList.toggle('unmute')
-  muteAndUnmute.classList.toggle('mute')
-  if(muteAndUnmute.classList.contains('unmute')) {
-    muteAndUnmute.textContent = '🔊'
-  }else if(muteAndUnmute.classList.contains('mute')) {
-    muteAndUnmute.textContent = '🔇'
-  }
+muteAndUnmute.addEventListener("click", function () {
+  isMuted = !isMuted;
 
-  if(muteAndUnmute.classList.contains('unmute')){
-      if(isGameStarted == false) gameAudio.pause()
-    } else if(muteAndUnmute.classList.contains('mute')){
-      if(isGameStarted == true) gameAudio.play()
+  if (isMuted) {
+    muteAndUnmute.classList.remove("unmute");
+    muteAndUnmute.classList.add("mute");
+    muteAndUnmute.textContent = "🔇";
+    gameAudio.pause();
+  } else {
+    muteAndUnmute.classList.remove("mute");
+    muteAndUnmute.classList.add("unmute");
+    muteAndUnmute.textContent = "🔊";
+    if (isGameStarted) {
+      gameAudio.currentTime = 0;
+      gameAudio.play();
     }
-})
+  }
+  gameCanvas.focus();
+});
 
-start.addEventListener('click', startFunc)
+start.addEventListener("click", startFunc);
 
-function startFunc(event) {
-
+function startFunc() {
   isGameStarted = true;
   ctx.lineWidth = 1;
-  let rect = gameCanvas.getBoundingClientRect()
-  let sides = rect.bottom - rect.top
-  let foodX;
-  let foodY;
   let movementX = fixNumber;
   let movementY = 0;
   let score = 0;
-  let randomNumber = (max, min) => Math.round((Math.random() * (max - min) + min) / 10) * 10
-  gameOver.style.display = 'none'
-  scoreSign.innerHTML = score
+  let foodX, foodY;
+  const randomNumber = (max, min) =>
+    Math.round((Math.random() * (max - min) + min) / 10) * 10;
 
-  gameCanvas.setAttribute('tabindex', '0')
-  gameCanvas.focus()
+  gameOver.style.display = "none";
+  scoreSign.innerHTML = score;
+  gameCanvas.setAttribute("tabindex", "0");
+  gameCanvas.focus();
 
   gameAudio.currentTime = 0;
-  if(muteAndUnmute.classList.contains('unmute')){
-      gameAudio.pause()
-  } else if(muteAndUnmute.classList.contains('mute')){
-      gameAudio.play()
-  }
+  if (!isMuted) gameAudio.play();
 
-  if (ctx.fillStyle == 'pink') {
-    return
-  } else if (ctx.fillStyle == '#54e9e4') {
-    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height)
-    ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
+  ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+  ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-    setTimeout(() => {
-      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height)
-      start.style.display = 'none'
-
-      delay()
-    }, 1000);
-  }
+  setTimeout(() => {
+    ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+    start.style.display = "none";
+    delay();
+  }, 1000);
 
   function delay() {
+    let snake = Array.from({ length: 5 }, (_, i) => ({
+      x: gameCanvas.width / 2 - i * fixNumber,
+      y: gameCanvas.height / 2,
+    }));
 
-    let snake = [
-      { x: gameCanvas.width/2 , y: gameCanvas.height/2 },
-      { x: gameCanvas.width/2 - fixNumber, y: gameCanvas.height/2 },
-      { x: gameCanvas.width/2 - (2*fixNumber), y: gameCanvas.height/2 },
-      { x: gameCanvas.width/2 - (3*fixNumber), y: gameCanvas.height/2 },
-      { x: gameCanvas.width/2 - (4*fixNumber), y: gameCanvas.height/2 }
-    ]
-
-
-
-    let clearSnake = () => {
-      ctx.fillStyle = 'pink'
-      ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height)
-      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
-    }
+    const clearSnake = () => {
+      ctx.fillStyle = "pink";
+      ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+    };
 
     let changingKey = false;
-    gameCanvas.addEventListener('keydown', function (event) {
-      let leftKey = 'ArrowLeft'
-      let rightKey = 'ArrowRight'
-      let topKey = 'ArrowUp'
-      let bottomKey = 'ArrowDown'
-      let keyPressed = event.code
-
-      event.preventDefault()
-
-      if (changingKey) return
+    gameCanvas.addEventListener("keydown", function (event) {
+      const key = event.code;
+      event.preventDefault();
+      if (changingKey) return;
       changingKey = true;
 
-      if (keyPressed == leftKey && movementX !== +10) {
-        event.preventDefault()
-        movementY = 0
-        movementX = -10
+      if (key === "ArrowLeft" && movementX !== +10) {
+        movementX = -10;
+        movementY = 0;
       }
-      if (keyPressed == rightKey && movementX !== -10) {
-        event.preventDefault()
-        movementY = 0
-        movementX = +10
+      if (key === "ArrowRight" && movementX !== -10) {
+        movementX = +10;
+        movementY = 0;
       }
-      if (keyPressed == topKey && movementY !== +10) {
-        event.preventDefault()
-        movementX = 0
-        movementY = -10
+      if (key === "ArrowUp" && movementY !== +10) {
+        movementX = 0;
+        movementY = -10;
       }
-      if (keyPressed == bottomKey && movementY !== -10) {
-        event.preventDefault()
-        movementX = 0
-        movementY = +10
+      if (key === "ArrowDown" && movementY !== -10) {
+        movementX = 0;
+        movementY = +10;
       }
-    })
+    });
 
-    let startX, startY, direction = null;
-    gameCanvas.addEventListener('touchstart', function (event) {
-      startX = event.touches[0].clientX
-      startY = event.touches[0].clientY
+    let startX,
+      startY,
       direction = null;
-      event.preventDefault()
-    })
-    gameCanvas.addEventListener('touchmove', function (event) {
+    gameCanvas.addEventListener("touchstart", function (event) {
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+      direction = null;
+      event.preventDefault();
+    });
+
+    gameCanvas.addEventListener("touchmove", function (event) {
       if (direction) return;
+      event.preventDefault();
 
-      event.preventDefault()
+      const dx = event.touches[0].clientX - startX;
+      const dy = event.touches[0].clientY - startY;
 
+      if (Math.abs(dx) > 10) direction = dx > 0 ? "right" : "left";
+      else if (Math.abs(dy) > 10) direction = dy > 0 ? "down" : "up";
 
-      let min = 10
-      let dx = event.touches[0].clientX - startX
-      let dy = event.touches[0].clientY - startY
-
-      if (Math.abs(dx) > min) {
-        direction = dx > 0 ? 'right' : 'left'
-      } else if (Math.abs(dy) > min) {
-        direction = dy > 0 ? 'down' : 'up'
+      if (direction === "right" && movementX !== -10) {
+        movementX = +10;
+        movementY = 0;
       }
+      if (direction === "left" && movementX !== +10) {
+        movementX = -10;
+        movementY = 0;
+      }
+      if (direction === "down" && movementY !== -10) {
+        movementY = +10;
+        movementX = 0;
+      }
+      if (direction === "up" && movementY !== +10) {
+        movementY = -10;
+        movementX = 0;
+      }
+    });
 
-      if (direction == 'right' && movementX !== -10) {
-        movementX = +10
-        movementY = 0
-      }
-      if (direction == 'left' && movementX !== +10) {
-        movementX = -10
-        movementY = 0
-      }
-      if (direction == 'down' && movementY !== -10) {
-        movementY = +10
-        movementX = 0
-      }
-      if (direction == 'up' && movementY !== +10) {
-        movementY = -10
-        movementX = 0
-      }
-    })
-
-    gameCanvas.addEventListener('touchend', function (event) {
+    gameCanvas.addEventListener("touchend", () => {
       direction = null;
-    })
+    });
 
-
-    let advanceSnake = () => {
-      let head = { x: snake[0].x + movementX, y: snake[0].y + movementY }
-      if (head.x == foodX && head.y == foodY) {
+    const advanceSnake = () => {
+      const head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
+      if (head.x === foodX && head.y === foodY) {
         score += 10;
-        scoreSign.innerHTML = score
-        creatFood()
-        console.log('hey you')
-        topScoreRecord()
+        scoreSign.textContent = score;
+        createFood();
+        topScoreRecord();
       } else {
-        snake.pop()
+        snake.pop();
       }
-      snake.unshift(head)
-      console.log(snake)
+      snake.unshift(head);
 
       if (vw > 768) {
-        if (score > 50) {
-          speed = 60
-        } if (score > 100) {
-          speed = 50
-        } if (score > 250) {
-          speed = 40
-        } if (score > 500) {
-          speed = 30
-        } if (score > 1000) {
-          speed = 20
-        } if (score > 2000) {
-          speed = 10
-        }
-      } else if (vw < 768) {
-        speed = 80
-        if (score > 100) {
-          speed = 70
-        } if (score > 150) {
-          speed = 60
-        } if (score > 200) {
-          speed = 50
-        } if (score > 400) {
-          speed = 40
-        } if (score > 500) {
-          speed = 30
-        } if (score > 1000) {
-          speed = 20
-        }
+        if (score > 50) speed = 60;
+        if (score > 100) speed = 50;
+        if (score > 250) speed = 40;
+        if (score > 500) speed = 30;
+        if (score > 1000) speed = 20;
+        if (score > 2000) speed = 10;
+      } else {
+        speed = 80;
+        if (score > 100) speed = 70;
+        if (score > 150) speed = 60;
+        if (score > 200) speed = 50;
+        if (score > 400) speed = 40;
+        if (score > 500) speed = 30;
+        if (score > 1000) speed = 20;
       }
-    }
+    };
 
-    function creatFood() {
-      let foodPlaceInSnake = false
-
-      while (!foodPlaceInSnake) {
-        foodX = randomNumber(0, gameCanvas.width - 10)
-        foodY = randomNumber(0, gameCanvas.height - 10)
-        foodPlaceInSnake = !snake.some(snakePart => snakePart.x == foodX && snakePart.y == foodY)
+    const createFood = () => {
+      let valid = false;
+      while (!valid) {
+        foodX = randomNumber(0, gameCanvas.width - 10);
+        foodY = randomNumber(0, gameCanvas.height - 10);
+        valid = !snake.some((part) => part.x === foodX && part.y === foodY);
       }
-      drawFood()
-    }
-    creatFood()
+      drawFood();
+    };
 
-    function drawFood() {
+    const drawFood = () => {
       ctx.lineWidth = 1;
-      ctx.fillStyle = 'red'
-      ctx.strokeStyle = 'black'
-      console.log(foodX)
-      console.log(foodY)
-      ctx.fillRect(foodX, foodY, 10, 10)
-      ctx.strokeRect(foodX, foodY, 10, 10)
+      ctx.fillStyle = "red";
+      ctx.strokeStyle = "black";
+      ctx.fillRect(foodX, foodY, 10, 10);
+      ctx.strokeRect(foodX, foodY, 10, 10);
+    };
 
-    }
+    const drawSnake = () =>
+      snake.forEach((part) => {
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "lightgreen";
+        ctx.strokeRect(part.x, part.y, 10, 10);
+        ctx.fillRect(part.x, part.y, 10, 10);
+      });
 
-    if (foodX < gameCanvas.width && foodY < gameCanvas.height) {
-      console.log("drawFood is Done")
-    } else if (foodX >= gameCanvas.width && foodY >= gameCanvas.height) {
-      console.log("Again")
-      drawFood()
-    }
-
-    let drawSnake = () => snake.forEach(drawSnakePart)
-    let drawSnakePart = snakePart => {
-      ctx.strokeStyle = 'blaack'
-      ctx.fillStyle = 'lightgreen'
-      ctx.strokeRect(snakePart.x, snakePart.y, 10, 10)
-      ctx.fillRect(snakePart.x, snakePart.y, 10, 10)
-    }
-
-    function restart() {
-      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height)
-      start.style.display = 'block'
-      speed = 70
+    const restart = () => {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      start.style.display = "block";
+      speed = 70;
       isGameStarted = true;
-      ctx.fillStyle = '#54e9e4'
-      ctx.fillRect(rectSpaceRL, rectSpaceTB, (gameCanvas.width - 2 * (rectSpaceRL)), (gameCanvas.height - 2 * (rectSpaceTB)))
-      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height)
-      gameOver.style.display = 'block'
+      ctx.fillStyle = "#54e9e4";
+      ctx.fillRect(
+        rectSpaceRL,
+        rectSpaceTB,
+        gameCanvas.width - 2 * rectSpaceRL,
+        gameCanvas.height - 2 * rectSpaceTB
+      );
+      ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+      gameOver.style.display = "block";
+
       if (vw > 768) {
-        gameOver.style.top = `-${gameCanvas.offsetHeight - .2 * gameCanvas.offsetHeight}px`
-      } else if (vw < 768) {
-        gameOver.style.fontSize = `1.5rem`
-        gameOver.style.right = '-5px'
-        gameOver.style.top = `-${gameCanvas.offsetHeight + gameOver.offsetHeight}px`
-      }
-
-    }
-
-    function topScoreRecord(){
-      if (score > highScore) {
-        highScore = score
-        topScore.innerHTML = highScore
-        localStorage.setItem('snakeHighScore' , highScore)
+        gameOver.style.top = `-${
+          gameCanvas.offsetHeight - 0.2 * gameCanvas.offsetHeight
+        }px`;
       } else {
-        console.log('bozorg nis')
+        gameOver.style.fontSize = `1.5rem`;
+        gameOver.style.right = "-5px";
+        gameOver.style.top = `-${
+          gameCanvas.offsetHeight + gameOver.offsetHeight
+        }px`;
       }
-    }
+    };
 
-    let lose = () => {
-      if (snake[0].x >= gameCanvas.width || snake[0].y >= gameCanvas.height || snake[0].x < 0 || snake[0].y < 0) {
-        return true
+    const topScoreRecord = () => {
+      if (score > highScore) {
+        highScore = score;
+        topScore.textContent = highScore;
+        localStorage.setItem("snakeHighScore", highScore);
       }
+    };
+
+    const lose = () => {
+      if (
+        snake[0].x >= gameCanvas.width ||
+        snake[0].y >= gameCanvas.height ||
+        snake[0].x < 0 ||
+        snake[0].y < 0
+      )
+        return true;
+
       for (let i = 1; i < snake.length; i++) {
-        console.log(snake[i])
-        if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
-          return true
+        if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
+          return true;
         }
       }
-      return false
-    }
+      return false;
+    };
 
     function main() {
-
       setTimeout(() => {
-        if(lose()) {
+        if (lose()) {
           isGameStarted = false;
-          gameAudio.pause()
-          loseAudio.play()
+          gameAudio.pause();
+          if (!isMuted) {
+            loseAudio.currentTime = 0;
+            loseAudio.play();
+          }
           setTimeout(() => {
-              restart()
-              start.addEventListener('click', startFunc)
-            }, 1000);
-            return
+            restart();
+            start.addEventListener("click", startFunc);
+          }, 1000);
+          return;
         }
 
         changingKey = false;
-        clearSnake()
-        advanceSnake()
-        drawSnake()
-        drawFood()
-
-        main()
+        clearSnake();
+        advanceSnake();
+        drawSnake();
+        drawFood();
+        main();
       }, speed);
     }
 
-    main()
-
-
+    main();
   }
 }
