@@ -8,24 +8,21 @@ const loseAudio = document.getElementById("lose-audio");
 const gameAudio = document.getElementById("game-audio");
 const muteAndUnmute = document.querySelector(".button");
 
-let isMuted = false;
 let isGameStarted = false;
-let fixNumber = 10;
-let rectSpaceRL = 10;
-let rectSpaceTB = 10;
-let speed = 70;
-let startOffsetHeight = 82;
+fixNumber = 10;
+ctx.lineWidth = 4;
+rectSpaceRL = 10;
+rectSpaceTB = 10;
+speed = 70;
+startOffsetHeight = 82;
 const vw = window.innerWidth;
-
 gameCanvas.width = Math.floor(gameCanvas.clientWidth / fixNumber) * fixNumber;
 gameCanvas.height = Math.floor(gameCanvas.clientHeight / fixNumber) * fixNumber;
-
 let highScore = localStorage.getItem("snakeHighScore")
   ? parseInt(localStorage.getItem("snakeHighScore"))
   : 0;
 topScore.innerHTML = highScore;
 
-ctx.lineWidth = 4;
 ctx.fillStyle = "#54e9e4";
 ctx.fillRect(
   rectSpaceRL,
@@ -36,174 +33,260 @@ ctx.fillRect(
 ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
 
 start.style.top = `-${gameCanvas.offsetHeight / 2 + startOffsetHeight / 2}px`;
+console.log(gameOver.clientHeight);
 
 muteAndUnmute.addEventListener("click", function () {
-  isMuted = !isMuted;
+  muteAndUnmute.classList.toggle("unmute");
+  muteAndUnmute.classList.toggle("mute");
 
-  if (isMuted) {
-    muteAndUnmute.classList.remove("unmute");
-    muteAndUnmute.classList.add("mute");
-    muteAndUnmute.textContent = "🔇";
-    gameAudio.pause();
-  } else {
-    muteAndUnmute.classList.remove("mute");
-    muteAndUnmute.classList.add("unmute");
+  if (muteAndUnmute.classList.contains("unmute")) {
     muteAndUnmute.textContent = "🔊";
     if (isGameStarted) {
       gameAudio.currentTime = 0;
       gameAudio.play();
     }
+  } else {
+    muteAndUnmute.textContent = "🔇";
+    gameAudio.pause();
   }
-  gameCanvas.focus();
+
+  gameCanvas.focus(); // ✅ حفظ فوکوس بعد از کلیک روی دکمه
 });
 
 start.addEventListener("click", startFunc);
 
-// اصلاح تابع randomNumber برای جلوگیری از مختصات اشتباه
-const randomNumber = (min, max) =>
-  Math.round((Math.random() * (max - min) + min) / 10) * 10;
-
-// تعریف drawFood قبل از استفاده
-const drawFood = () => {
-  ctx.lineWidth = 1;
-  ctx.fillStyle = "red"; // برای تست می‌تونی بذاری "blue"
-  ctx.strokeStyle = "black";
-  ctx.fillRect(foodX, foodY, 10, 10);
-  ctx.strokeRect(foodX, foodY, 10, 10);
-};
-
-// snake و foodX/Y باید global باشن تا همه‌جا قابل دسترسی باشن
-let snake = [];
-let foodX = 0;
-let foodY = 0;
-
-// تعریف createFood قبل از استفاده
-const createFood = () => {
-  let valid = false;
-  let attempts = 0;
-
-  while (!valid && attempts < 100) {
-    foodX = randomNumber(0, gameCanvas.width - 10);
-    foodY = randomNumber(0, gameCanvas.height - 10);
-    valid = !snake.some((part) => part.x === foodX && part.y === foodY);
-    attempts++;
-  }
-
-  if (!valid) {
-    foodX = 0;
-    foodY = 0;
-  }
-
-  drawFood();
-};
-function startFunc() {
+function startFunc(event) {
   isGameStarted = true;
   ctx.lineWidth = 1;
-movementX = fixNumber;
-movementY = 0;
-score = 0;
-
-
+  let rect = gameCanvas.getBoundingClientRect();
+  let sides = rect.bottom - rect.top;
+  let foodX;
+  let foodY;
+  let movementX = fixNumber;
+  let movementY = 0;
+  let score = 0;
+  let randomNumber = (max, min) =>
+    Math.round((Math.random() * (max - min) + min) / 10) * 10;
   gameOver.style.display = "none";
   scoreSign.innerHTML = score;
+
   gameCanvas.setAttribute("tabindex", "0");
   gameCanvas.focus();
 
   gameAudio.currentTime = 0;
-  if (!isMuted) gameAudio.play();
+  if (muteAndUnmute.classList.contains("unmute")) {
+    gameAudio.pause();
+  } else if (muteAndUnmute.classList.contains("mute")) {
+    gameAudio.play();
+  }
 
-  ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-  ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
-
-  setTimeout(() => {
+  if (ctx.fillStyle === "pink") {
+    ctx.fillStyle = "#54e9e4"; // ریست رنگ پس‌زمینه
+  } else if (ctx.fillStyle == "#54e9e4") {
     ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
-    start.style.display = "none";
+    ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
 
-    snake = Array.from({ length: 5 }, (_, i) => ({
-      x: gameCanvas.width / 2 - i * fixNumber,
-      y: gameCanvas.height / 2,
-    }));
+    setTimeout(() => {
+      ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
+      start.style.display = "none";
 
-    createFood();
-    main();
+      gameCanvas.focus();
+      delay();
+    }, 1000);
+  }
 
-    const clearSnake = () => {
-      ctx.fillStyle = "#54e9e4";
-      ctx.fillRect(
-        rectSpaceRL,
-        rectSpaceTB,
-        gameCanvas.width - 2 * rectSpaceRL,
-        gameCanvas.height - 2 * rectSpaceTB
-      );
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 4;
+  function delay() {
+    let snake = [
+      { x: gameCanvas.width / 2, y: gameCanvas.height / 2 },
+      { x: gameCanvas.width / 2 - fixNumber, y: gameCanvas.height / 2 },
+      { x: gameCanvas.width / 2 - 2 * fixNumber, y: gameCanvas.height / 2 },
+      { x: gameCanvas.width / 2 - 3 * fixNumber, y: gameCanvas.height / 2 },
+      { x: gameCanvas.width / 2 - 4 * fixNumber, y: gameCanvas.height / 2 },
+    ];
+
+    let clearSnake = () => {
+      ctx.fillStyle = "pink";
+      ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
       ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
     };
 
-    const drawSnake = () =>
-      snake.forEach((part) => {
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = "lightgreen";
-        ctx.strokeRect(part.x, part.y, 10, 10);
-        ctx.fillRect(part.x, part.y, 10, 10);
-      });
+    let changingKey = false;
+    gameCanvas.addEventListener("keydown", function (event) {
+      let leftKey = "ArrowLeft";
+      let rightKey = "ArrowRight";
+      let topKey = "ArrowUp";
+      let bottomKey = "ArrowDown";
+      let keyPressed = event.code;
 
-    const advanceSnake = () => {
-      const head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
-      if (head.x === foodX && head.y === foodY) {
+      event.preventDefault();
+
+      if (changingKey) return;
+      changingKey = true;
+
+      if (keyPressed == leftKey && movementX !== +10) {
+        event.preventDefault();
+        movementY = 0;
+        movementX = -10;
+      }
+      if (keyPressed == rightKey && movementX !== -10) {
+        event.preventDefault();
+        movementY = 0;
+        movementX = +10;
+      }
+      if (keyPressed == topKey && movementY !== +10) {
+        event.preventDefault();
+        movementX = 0;
+        movementY = -10;
+      }
+      if (keyPressed == bottomKey && movementY !== -10) {
+        event.preventDefault();
+        movementX = 0;
+        movementY = +10;
+      }
+    });
+
+    let startX,
+      startY,
+      direction = null;
+    gameCanvas.addEventListener("touchstart", function (event) {
+      startX = event.touches[0].clientX;
+      startY = event.touches[0].clientY;
+      direction = null;
+      event.preventDefault();
+    });
+    gameCanvas.addEventListener("touchmove", function (event) {
+      if (direction) return;
+
+      event.preventDefault();
+
+      let min = 10;
+      let dx = event.touches[0].clientX - startX;
+      let dy = event.touches[0].clientY - startY;
+
+      if (Math.abs(dx) > min) {
+        direction = dx > 0 ? "right" : "left";
+      } else if (Math.abs(dy) > min) {
+        direction = dy > 0 ? "down" : "up";
+      }
+
+      if (direction == "right" && movementX !== -10) {
+        movementX = +10;
+        movementY = 0;
+      }
+      if (direction == "left" && movementX !== +10) {
+        movementX = -10;
+        movementY = 0;
+      }
+      if (direction == "down" && movementY !== -10) {
+        movementY = +10;
+        movementX = 0;
+      }
+      if (direction == "up" && movementY !== +10) {
+        movementY = -10;
+        movementX = 0;
+      }
+    });
+
+    gameCanvas.addEventListener("touchend", function (event) {
+      direction = null;
+    });
+
+    let advanceSnake = () => {
+      let head = { x: snake[0].x + movementX, y: snake[0].y + movementY };
+      if (head.x == foodX && head.y == foodY) {
         score += 10;
-        scoreSign.textContent = score;
-        createFood();
+        scoreSign.innerHTML = score;
+        creatFood();
+        console.log("hey you");
         topScoreRecord();
       } else {
         snake.pop();
       }
       snake.unshift(head);
+      console.log(snake);
 
       if (vw > 768) {
+        if (score > 50) {
+          speed = 60;
+        }
+        if (score > 100) {
+          speed = 50;
+        }
+        if (score > 250) {
+          speed = 40;
+        }
+        if (score > 500) {
+          speed = 30;
+        }
+        if (score > 1000) {
+          speed = 20;
+        }
+        if (score > 2000) {
+          speed = 10;
+        }
+      } else if (vw < 768) {
         speed = 80;
-        if (score > 100) speed = 70;
-        if (score > 200) speed = 60;
-        if (score > 300) speed = 50;
-        if (score > 500) speed = 40;
-        if (score > 800) speed = 30;
-        if (score > 1200) speed = 25;
-      } else {
-        speed = 100;
-        if (score > 100) speed = 90;
-        if (score > 200) speed = 80;
-        if (score > 300) speed = 70;
-        if (score > 500) speed = 60;
-        if (score > 800) speed = 50;
-        if (score > 1200) speed = 40;
-      }
-    };
-
-    const topScoreRecord = () => {
-      if (score > highScore) {
-        highScore = score;
-        topScore.textContent = highScore;
-        localStorage.setItem("snakeHighScore", highScore);
-      }
-    };
-    const lose = () => {
-      if (
-        snake[0].x >= gameCanvas.width ||
-        snake[0].y >= gameCanvas.height ||
-        snake[0].x < 0 ||
-        snake[0].y < 0
-      )
-        return true;
-
-      for (let i = 1; i < snake.length; i++) {
-        if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
-          return true;
+        if (score > 100) {
+          speed = 70;
+        }
+        if (score > 150) {
+          speed = 60;
+        }
+        if (score > 200) {
+          speed = 50;
+        }
+        if (score > 400) {
+          speed = 40;
+        }
+        if (score > 500) {
+          speed = 30;
+        }
+        if (score > 1000) {
+          speed = 20;
         }
       }
-      return false;
     };
 
-    const restart = () => {
+    function creatFood() {
+      let foodPlaceInSnake = false;
+
+      while (!foodPlaceInSnake) {
+        foodX = randomNumber(0, gameCanvas.width - 10);
+        foodY = randomNumber(0, gameCanvas.height - 10);
+        foodPlaceInSnake = !snake.some(
+          (snakePart) => snakePart.x == foodX && snakePart.y == foodY
+        );
+      }
+      drawFood();
+    }
+    creatFood();
+
+    function drawFood() {
+      ctx.lineWidth = 1;
+      ctx.fillStyle = "red";
+      ctx.strokeStyle = "black";
+      console.log(foodX);
+      console.log(foodY);
+      ctx.fillRect(foodX, foodY, 10, 10);
+      ctx.strokeRect(foodX, foodY, 10, 10);
+    }
+
+    if (foodX < gameCanvas.width && foodY < gameCanvas.height) {
+      console.log("drawFood is Done");
+    } else if (foodX >= gameCanvas.width && foodY >= gameCanvas.height) {
+      console.log("Again");
+      drawFood();
+    }
+
+    let drawSnake = () => snake.forEach(drawSnakePart);
+    let drawSnakePart = (snakePart) => {
+      ctx.strokeStyle = "blaack";
+      ctx.fillStyle = "lightgreen";
+      ctx.strokeRect(snakePart.x, snakePart.y, 10, 10);
+      ctx.fillRect(snakePart.x, snakePart.y, 10, 10);
+    };
+
+    function restart() {
       ctx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
       start.style.display = "block";
       speed = 70;
@@ -217,18 +300,45 @@ score = 0;
       );
       ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
       gameOver.style.display = "block";
-
       if (vw > 768) {
         gameOver.style.top = `-${
           gameCanvas.offsetHeight - 0.2 * gameCanvas.offsetHeight
         }px`;
-      } else {
+      } else if (vw < 768) {
         gameOver.style.fontSize = `1.5rem`;
         gameOver.style.right = "-5px";
         gameOver.style.top = `-${
           gameCanvas.offsetHeight + gameOver.offsetHeight
         }px`;
       }
+    }
+
+    function topScoreRecord() {
+      if (score > highScore) {
+        highScore = score;
+        topScore.innerHTML = highScore;
+        localStorage.setItem("snakeHighScore", highScore);
+      } else {
+        console.log("bozorg nis");
+      }
+    }
+
+    let lose = () => {
+      if (
+        snake[0].x >= gameCanvas.width ||
+        snake[0].y >= gameCanvas.height ||
+        snake[0].x < 0 ||
+        snake[0].y < 0
+      ) {
+        return true;
+      }
+      for (let i = 1; i < snake.length; i++) {
+        console.log(snake[i]);
+        if (snake[0].x == snake[i].x && snake[0].y == snake[i].y) {
+          return true;
+        }
+      }
+      return false;
     };
 
     function main() {
@@ -236,10 +346,7 @@ score = 0;
         if (lose()) {
           isGameStarted = false;
           gameAudio.pause();
-          if (!isMuted) {
-            loseAudio.currentTime = 0;
-            loseAudio.play();
-          }
+          loseAudio.play();
           setTimeout(() => {
             restart();
             start.addEventListener("click", startFunc);
@@ -252,78 +359,11 @@ score = 0;
         advanceSnake();
         drawSnake();
         drawFood();
+
         main();
       }, speed);
     }
 
-    // کنترل‌های صفحه‌کلید
-    gameCanvas.addEventListener("keydown", function (event) {
-      const key = event.code;
-      event.preventDefault();
-      if (changingKey) return;
-      changingKey = true;
-
-      if (key === "ArrowLeft" && movementX !== +10) {
-        movementX = -10;
-        movementY = 0;
-      }
-      if (key === "ArrowRight" && movementX !== -10) {
-        movementX = +10;
-        movementY = 0;
-      }
-      if (key === "ArrowUp" && movementY !== +10) {
-        movementX = 0;
-        movementY = -10;
-      }
-      if (key === "ArrowDown" && movementY !== -10) {
-        movementX = 0;
-        movementY = +10;
-      }
-    });
-
-    // کنترل‌های لمسی برای موبایل
-    let startX,
-      startY,
-      direction = null;
-    gameCanvas.addEventListener("touchstart", function (event) {
-      startX = event.touches[0].clientX;
-      startY = event.touches[0].clientY;
-      direction = null;
-      event.preventDefault();
-    });
-
-    gameCanvas.addEventListener("touchmove", function (event) {
-      if (direction) return;
-      event.preventDefault();
-
-      const dx = event.touches[0].clientX - startX;
-      const dy = event.touches[0].clientY - startY;
-
-      if (Math.abs(dx) > 10) direction = dx > 0 ? "right" : "left";
-      else if (Math.abs(dy) > 10) direction = dy > 0 ? "down" : "up";
-
-      if (direction === "right" && movementX !== -10) {
-        movementX = +10;
-        movementY = 0;
-      }
-      if (direction === "left" && movementX !== +10) {
-        movementX = -10;
-        movementY = 0;
-      }
-      if (direction === "down" && movementY !== -10) {
-        movementY = +10;
-        movementX = 0;
-      }
-      if (direction === "up" && movementY !== +10) {
-        movementY = -10;
-        movementX = 0;
-      }
-    });
-
-    gameCanvas.addEventListener("touchend", () => {
-      direction = null;
-    });
-
     main();
-  }, 1000);
+  }
 }
